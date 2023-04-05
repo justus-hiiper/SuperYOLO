@@ -16,12 +16,11 @@ import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
-from PIL import Image, ExifTags
+from PIL import ExifTags, Image
 # from torch.testing import floating_and_complex_types
 from torch.utils.data import Dataset
 from tqdm import tqdm
-
-from utils.general import xyxy2xywh, xywh2xyxy, clean_str
+from utils.general import clean_str, xywh2xyxy, xyxy2xywh
 from utils.torch_utils import torch_distributed_zero_first
 
 # Parameters
@@ -402,7 +401,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             #         self.img_files.remove(i+'\n')
             for j in range(len(self.img_files)):
                 # self.img_files[j] = self.img_path + self.img_files[j].rstrip() + '_co.png' #self.img_files[j].rstrip() + '_co.png'  #self.img_path + self.img_files[j].rstrip() + '_co.png'
-                self.img_files[j] = self.img_files[j].rstrip() 
+                self.img_files[j] = self.img_files[j].rstrip()[-1]
 
         # Check cache
         self.label_files = img2label_paths(self.img_files)  # labels

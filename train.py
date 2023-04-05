@@ -5,10 +5,13 @@ import logging
 import math
 import os
 import random
+# import test_up  # import test.py to get mAP after each epoch
+import test
 import time
 from copy import deepcopy
 from pathlib import Path
 from threading import Thread
+
 import numpy as np
 import torch.distributed as dist
 import torch.nn as nn
@@ -17,26 +20,27 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 import torch.utils.data
 import yaml
+from models.experimental import attempt_load
+from models.SRyolo import Model  # zjq
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-
-# import test_up  # import test.py to get mAP after each epoch
-import test
-from models.experimental import attempt_load
-from models.SRyolo import Model #zjq
 from utils.autoanchor import check_anchors
-
-
-from utils.general import labels_to_class_weights, increment_path, labels_to_image_weights, init_seeds, \
-    fitness, strip_optimizer, get_latest_run, check_dataset, check_file, check_git_status, check_img_size, \
-    check_requirements, print_mutation, set_logging, one_cycle, colorstr
+from utils.general import (check_dataset, check_file, check_git_status,
+                           check_img_size, check_requirements, colorstr,
+                           fitness, get_latest_run, increment_path, init_seeds,
+                           labels_to_class_weights, labels_to_image_weights,
+                           one_cycle, print_mutation, set_logging,
+                           strip_optimizer)
 from utils.google_utils import attempt_download
 from utils.loss import ComputeLoss
-from utils.plots import plot_images, plot_labels, plot_results, plot_evolution,plot_lr_scheduler
-from utils.torch_utils import ModelEMA, select_device, intersect_dicts, torch_distributed_zero_first, is_parallel
+from utils.plots import (plot_evolution, plot_images, plot_labels,
+                         plot_lr_scheduler, plot_results)
+from utils.torch_utils import (ModelEMA, intersect_dicts, is_parallel,
+                               select_device, torch_distributed_zero_first)
 from utils.wandb_logging.wandb_utils import WandbLogger, check_wandb_resume
+
 # from optimizer import build_optimizer
 ########swin#######
 #from config import get_config
@@ -208,7 +212,7 @@ def train(hyp, opt, device, tb_writer=None):
     if opt.data.endswith('vedai.yaml') or opt.data.endswith('SRvedai.yaml'):
         from utils.datasets import create_dataloader_sr as create_dataloader
     else:
-        from utils.datasets_single import create_dataloader
+        from utils.datasets import create_dataloader
     dataloader, dataset = create_dataloader(train_path, imgsz, batch_size, gs, opt,
                                         hyp=hyp, augment=True, cache=opt.cache_images, rect=opt.rect, rank=rank,
                                         #world_size=opt.world_size,

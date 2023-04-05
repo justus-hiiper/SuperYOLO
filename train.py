@@ -41,6 +41,9 @@ from utils.torch_utils import (ModelEMA, intersect_dicts, is_parallel,
                                select_device, torch_distributed_zero_first)
 from utils.wandb_logging.wandb_utils import WandbLogger, check_wandb_resume
 
+# at beginning of the script
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 # from optimizer import build_optimizer
 ########swin#######
 #from config import get_config

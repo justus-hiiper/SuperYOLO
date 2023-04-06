@@ -137,8 +137,7 @@ class Model(nn.Module):
         
     
     def forward(self, x, ir=torch.randn(1,3,512,512), input_mode='RGB+IR', augment=False, profile=False):
-        print(f"x={x}\n{input_mode}\n{augment}\n")
-        print(f"0:{x[0]}\n1:{x[1]}\n2:{x[2]}\n")
+        print(f"x={x.shape}\n{input_mode}\n{augment}\n")
         # input_mode = 'RGB+IR' #IRRGB
         if input_mode=='RGB':
             ir=x

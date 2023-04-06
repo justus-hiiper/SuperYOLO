@@ -367,7 +367,7 @@ class LoadStreams:  # multiple IP or RTSP cameras
 def img2label_paths(img_paths):
     # Define label paths as a function of image paths
     sa, sb = os.sep + 'images' + os.sep, os.sep + 'labels' + os.sep  # /images/, /labels/ substrings
-    return [x.replace(sa, sb, 1).replace('_' + x.split('_')[-1], '.txt') for x in img_paths] #replace('.' + x.split('.')[-1], '.txt')
+    return [x.replace(sa, sb, 1).replace('.jpg', '.txt').replace('.jpeg', '.txt').replace('.png', '.txt') for x in img_paths] #replace('.' + x.split('.')[-1], '.txt')
 
 def img2ir_paths(img_paths): #zjq
     # Define ir image paths as a function of image paths
@@ -389,9 +389,9 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         self.mosaic_border = [-img_size // 2, -img_size // 2]
         self.stride = stride
         if hr_input== False:
-            self.img_path = '/home/data/zhangjiaqing/dataset/VEDAI/images/' #zjq the path for 512*512 images
+            self.img_path = 'SuperYOLO/dataset/VEDAI/images/' #zjq the path for 512*512 images
         else:
-            self.img_path = '/home/data/zhangjiaqing/dataset/VEDAI_1024/images/' #zjq the path for 1024*1024 images
+            self.img_path = 'SuperYOLO/VEDAI_1024/images/' #zjq the path for 1024*1024 images
 
 
         with open(path, "r") as file:
@@ -405,14 +405,8 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
 
         # Check cache
         self.label_files = img2label_paths(self.img_files)  # labels
-        print("Label files\n")
-        print(self.label_files)
         self.ir_files = img2ir_paths(self.img_files)
-        print("Ir files\n")
-        print(self.ir_files)
         cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')  # cached labels
-        print("Cache path\n")
-        print(cache_path)
         
         if cache_path.is_file():
             cache = torch.load(cache_path)  # load

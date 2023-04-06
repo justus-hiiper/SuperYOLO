@@ -4,23 +4,25 @@ import argparse
 import logging
 import sys
 from copy import deepcopy
+
 import scipy.io as sio
 from torch import mode
 
 sys.path.append('./')  # to run '$ python *.py' files in subdirectories
 logger = logging.getLogger(__name__)
 
+import numpy
+import scipy.io as sio
 from models.common import *
 # from models.swin_transformer import *
 from models.experimental import *
-
 # from models.edsr import EDSR
 from utils.autoanchor import check_anchor_order
-from utils.general import make_divisible, check_file, set_logging
-from utils.torch_utils import time_synchronized, fuse_conv_and_bn, model_info, scale_img, initialize_weights, \
-    select_device, copy_attr
-import scipy.io as sio
-import numpy
+from utils.general import check_file, make_divisible, set_logging
+from utils.torch_utils import (copy_attr, fuse_conv_and_bn, initialize_weights,
+                               model_info, scale_img, select_device,
+                               time_synchronized)
+
 # from models import build_model
 try:
     import thop  # for FLOPS computation
@@ -114,7 +116,7 @@ class Model(nn.Module):
         if isinstance(m, Detect):
             s = 256  # 2x min stride
             #m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch_steam, s, s),torch.zeros(1, ch_steam, s, s),input_mode)[0]])  # forward
-            m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch_steam, s, s),torch.zeros(1, ch_steam, s, s),input_mode)[0]])  # forward
+            m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch_steam, s, s),_,input_mode)[0]])  # forward #torch.zeros(1, ch_steam, s, s)
             m.anchors /= m.stride.view(-1, 1, 1)
             check_anchor_order(m)
             self.stride = m.stride
@@ -135,6 +137,7 @@ class Model(nn.Module):
         
     
     def forward(self, x, ir=torch.randn(1,3,512,512), input_mode='RGB+IR', augment=False, profile=False):
+        print(f"x={x}\n{input_mode}\n{augment}\n")
         # input_mode = 'RGB+IR' #IRRGB
         if input_mode=='RGB':
             ir=x

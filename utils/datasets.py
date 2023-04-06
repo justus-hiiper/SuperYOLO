@@ -541,13 +541,13 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         mosaic = self.mosaic and random.random() < hyp['mosaic']
         if mosaic:
             # Load mosaic
-            img, ir, labels = load_mosaic(self, index) #zjq
+            img, _, labels = load_mosaic(self, index) #zjq #_ = ir
             #ir = load_ir(self, index) #zjq
             shapes = None
 
             # MixUp https://arxiv.org/pdf/1710.09412.pdf
             if random.random() < hyp['mixup']:
-                img2, ir2, labels2 = load_mosaic(self, random.randint(0, self.n - 1)) #zjq
+                img2, _ , labels2 = load_mosaic(self, random.randint(0, self.n - 1)) #zjq #_ = ir2
                 r = np.random.beta(8.0, 8.0)  # mixup ratio, alpha=beta=8.0
                 img = (img * r + img2 * (1 - r)).astype(np.uint8)
                 ir = (ir * r + ir2 * (1 - r)).astype(np.uint8) #zjq
@@ -1046,7 +1046,7 @@ def load_mosaic(self, index): #拼接图像
         # img4, labels4 = replicate(img4, labels4)  # replicate
 
     # Augment
-    img4, ir4, labels4 = random_perspective(img4, ir4, labels4,
+    img4, _, labels4 = random_perspective(img4, _, labels4, #ir4
                                        degrees=self.hyp['degrees'],
                                        translate=self.hyp['translate'],
                                        scale=self.hyp['scale'],
@@ -1054,7 +1054,7 @@ def load_mosaic(self, index): #拼接图像
                                        perspective=self.hyp['perspective'],
                                        border=self.mosaic_border)  # border to remove
 
-    return img4, ir4, labels4
+    return img4, labels4, #ir4
 
 
 def load_mosaic9(self, index): #not use
@@ -1221,10 +1221,10 @@ def random_perspective(img, ir, targets=(), degrees=10, translate=.1, scale=.1, 
     if (border[0] != 0) or (border[1] != 0) or (M != np.eye(3)).any():  # image changed
         if perspective:
             img = cv2.warpPerspective(img, M, dsize=(width, height), borderValue=(114, 114, 114))
-            ir = cv2.warpPerspective(ir, M, dsize=(width, height), borderValue=(114, 114, 114)) #zjq
+            # ir = cv2.warpPerspective(ir, M, dsize=(width, height), borderValue=(114, 114, 114)) #zjq
         else:  # affine
             img = cv2.warpAffine(img, M[:2], dsize=(width, height), borderValue=(114, 114, 114))
-            ir = cv2.warpPerspective(ir, M, dsize=(width, height), borderValue=(114, 114, 114)) #zjq
+            # ir = cv2.warpPerspective(ir, M, dsize=(width, height), borderValue=(114, 114, 114)) #zjq
 
     # Visualize
     # import matplotlib.pyplot as plt
@@ -1267,7 +1267,7 @@ def random_perspective(img, ir, targets=(), degrees=10, translate=.1, scale=.1, 
         targets = targets[i]
         targets[:, 1:5] = xy[i]
 
-    return img, ir, targets #zjq
+    return img, _, targets #zjq #_ = ir
 
 
 def box_candidates(box1, box2, wh_thr=2, ar_thr=20, area_thr=0.1, eps=1e-16):  # box1(4,n), box2(4,n)

@@ -350,7 +350,7 @@ def train(hyp, opt, device, tb_writer=None):
         for i, (imgs, irs, targets, paths, _) in pbar:  # batch zjq  -------------------------------------------------------------
             ni = i + nb * epoch  # number integrated batches (since train start)
             image = imgs.to(device, non_blocking=True).float() / 255.0  # uint8 to float32, 0-255 to 0.0-1.0
-            ir_image = irs.to(device, non_blocking=True).float() / 255.0 #zjq
+            # ir_image = irs.to(device, non_blocking=True).float() / 255.0 #zjq
 
             # if imgsz==imgsz_test*2:
             #     imgs=F.interpolate(image,size=[i//2 for i in image.size()[2:]], mode='bilinear', align_corners=True)
@@ -358,10 +358,10 @@ def train(hyp, opt, device, tb_writer=None):
             #down_factor = int(imgsz/imgsz_test)
             if down_factor>1:
                 imgs=F.interpolate(image,size=[i//down_factor for i in image.size()[2:]], mode='bilinear', align_corners=True)
-                irs=F.interpolate(ir_image,size=[i//down_factor for i in ir_image.size()[2:]], mode='bilinear', align_corners=True)
+                # irs=F.interpolate(ir_image,size=[i//down_factor for i in ir_image.size()[2:]], mode='bilinear', align_corners=True)
             else:
                 imgs = image
-                irs = ir_image
+                # irs = ir_image
             # imgs = get_edge(imgs).to(device, non_blocking=True)
             # irs = get_edge(irs).to(device, non_blocking=True)
             # Warmup
@@ -404,11 +404,11 @@ def train(hyp, opt, device, tb_writer=None):
                 loss_items = torch.cat((lbox, lobj, lcls, loss)).detach()
                 if opt.super: #and not opt.attention and not opt.super_attention:    
                     if opt.input_mode =='IR':
-                        sr_loss = 0.5*torch.nn.L1Loss()(output_sr,ir_image)
+                        continue# sr_loss = 0.5*torch.nn.L1Loss()(output_sr,ir_image)
                     elif opt.input_mode =='RGB':
                         sr_loss = 0.5*torch.nn.L1Loss()(output_sr,image)
                     else:
-                        sr_loss = 0.1*(torch.nn.L1Loss()(output_sr[:,0:3,:,:,],image)+torch.nn.L1Loss()(output_sr[:,3:,:,:,],ir_image[:,0:1,:,:,]))
+                        continue# sr_loss = 0.1*(torch.nn.L1Loss()(output_sr[:,0:3,:,:,],image)+torch.nn.L1Loss()(output_sr[:,3:,:,:,],ir_image[:,0:1,:,:,]))
                     loss += sr_loss
                 # if (opt.super or opt.super_attention) and opt.attention:        
                 #     if opt.input_mode =='IR':

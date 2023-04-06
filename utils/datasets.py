@@ -393,7 +393,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         else:
             self.img_path = 'SuperYOLO/VEDAI_1024/images/' #zjq the path for 1024*1024 images
 
-
+        
         with open(path, "r") as file:
             self.img_files = file.readlines()
             # for i in dele:
@@ -483,7 +483,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         x = {}  # dict
         nm, nf, ne, nc = 0, 0, 0, 0  # number missing, found, empty, duplicate
         pbar = tqdm(zip(self.img_files, self.label_files, self.ir_files), desc='Scanning images', total=len(self.img_files)) #zjq
-        for i, (im_file, lb_file ,ir_file) in enumerate(pbar): #zjq
+        for i, (im_file, lb_file , ir_file) in enumerate(pbar): #zjq
             try:
                 # verify images
                 im = Image.open(im_file)
@@ -1006,12 +1006,12 @@ def load_mosaic(self, index): #拼接图像
     for i, index in enumerate(indices):
         # Load image
         img, _, (h, w) = load_image(self, index)
-        ir = load_ir(self, index) #zjq
+        # ir = load_ir(self, index) #zjq
 
         # place img in img4
         if i == 0:  # top left
             img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
-            ir4 = np.full((s * 2, s * 2, ir.shape[2]), 114, dtype=np.uint8) #zjq
+            # ir4 = np.full((s * 2, s * 2, ir.shape[2]), 114, dtype=np.uint8) #zjq
             x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
             x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
         elif i == 1:  # top right
@@ -1025,7 +1025,7 @@ def load_mosaic(self, index): #拼接图像
             x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
 
         img4[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]  # img4[ymin:ymax, xmin:xmax]
-        ir4[y1a:y2a, x1a:x2a] = ir[y1b:y2b, x1b:x2b]
+        # ir4[y1a:y2a, x1a:x2a] = ir[y1b:y2b, x1b:x2b]
         padw = x1a - x1b
         padh = y1a - y1b
 

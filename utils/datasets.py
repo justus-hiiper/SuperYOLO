@@ -603,14 +603,14 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             # flip up-down
             if random.random() < hyp['flipud']:
                 img = np.flipud(img)
-                ir = np.flipud(ir) #zjq
+                # ir = np.flipud(ir) #zjq
                 if nL:
                     labels[:, 2] = 1 - labels[:, 2]
 
             # flip left-right
             if random.random() < hyp['fliplr']:
                 img = np.fliplr(img)
-                ir = np.fliplr(ir) #zjq
+                # ir = np.fliplr(ir) #zjq
                 if nL:
                     labels[:, 1] = 1 - labels[:, 1]
 
@@ -621,10 +621,10 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         # Convert
         img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         img = np.ascontiguousarray(img)
-        ir = ir[:, :, ::-1].transpose(2, 0, 1)
-        ir = np.ascontiguousarray(ir) #zjq ascontiguousarray函数将一个内存不连续存储的数组转换为内存连续存储的数组，使得运行速度更快
+        # ir = ir[:, :, ::-1].transpose(2, 0, 1)
+        # ir = np.ascontiguousarray(ir) #zjq ascontiguousarray函数将一个内存不连续存储的数组转换为内存连续存储的数组，使得运行速度更快
 
-        return torch.from_numpy(img), torch.from_numpy(ir), labels_out, self.img_files[index], shapes
+        return torch.from_numpy(img), None, labels_out, self.img_files[index], shapes # None = torch.from_numpy(ir)
 
     @staticmethod
     def collate_fn(batch):

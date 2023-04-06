@@ -1,7 +1,11 @@
+import pdb
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from models.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
+
+
 #from models.common import AttentionModel
 class Decoder(nn.Module):
     def __init__(self, c1,c2):
@@ -25,6 +29,7 @@ class Decoder(nn.Module):
         self._init_weight()
 
     def forward(self, x, low_level_feat,factor):
+        pdb.set_trace()
         #x, low_level_feat = input[-2],input[-1]
         low_level_feat = self.conv1(low_level_feat)
         #low_level_feat = self.bn1(low_level_feat)

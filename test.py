@@ -7,18 +7,20 @@ from threading import Thread
 import numpy as np
 import torch
 import yaml
-from tqdm import tqdm
-
 from models.experimental import attempt_load
+from PIL import Image
+from torchvision import transforms
+from tqdm import tqdm
 from utils.datasets import create_dataloader, create_dataloader_sr
-from utils.general import coco80_to_coco91_class, check_dataset, check_file, check_img_size, check_requirements, \
-    box_iou, non_max_suppression,weighted_boxes, scale_coords, xyxy2xywh, xywh2xyxy, set_logging, increment_path, colorstr
-from utils.metrics import ap_per_class, ConfusionMatrix
-from utils.plots import plot_images, output_to_target, plot_study_txt
+from utils.general import (box_iou, check_dataset, check_file, check_img_size,
+                           check_requirements, coco80_to_coco91_class,
+                           colorstr, increment_path, non_max_suppression,
+                           scale_coords, set_logging, weighted_boxes,
+                           xywh2xyxy, xyxy2xywh)
+from utils.metrics import ConfusionMatrix, ap_per_class
+from utils.plots import output_to_target, plot_images, plot_study_txt
 from utils.torch_utils import select_device, time_synchronized
 
-from torchvision import transforms
-from PIL import Image
 unloader = transforms.ToPILImage()
 def tensor_to_PIL(tensor):
     image = tensor.cpu().clone()
@@ -124,9 +126,9 @@ def test(data,
         img = img.to(device, non_blocking=True).float()
         # img = img.half() if half else img.float()  # uint8 to fp16/32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
-        ir = ir.to(device, non_blocking=True).float()
+        # ir = ir.to(device, non_blocking=True).float()
         # ir = ir.half() if half else ir.float()  # uint8 to fp16/32
-        ir /= 255.0  # 0 - 255 to 0.0 - 1.0
+        # ir /= 255.0  # 0 - 255 to 0.0 - 1.0
         targets = targets.to(device)
         nb, _, height, width = img.shape  # batch size, channels, height, width
 
@@ -134,9 +136,9 @@ def test(data,
             # Run model
             t = time_synchronized()
             try:
-                out, train_out = model(img,ir,input_mode=input_mode) #zjq inference and training outputs
+                out, train_out = model(img,_,input_mode=input_mode) #zjq inference and training outputs #_ = ir
             except:
-                out, train_out,_ = model(img,ir,input_mode=input_mode) #zjq inference and training outputs
+                out, train_out,_ = model(img,_,input_mode=input_mode) #zjq inference and training outputs #_ = ir
             t0 += time_synchronized() - t
 
             # Compute loss

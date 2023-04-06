@@ -550,7 +550,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                 img2, _ , labels2 = load_mosaic(self, random.randint(0, self.n - 1)) #zjq #_ = ir2
                 r = np.random.beta(8.0, 8.0)  # mixup ratio, alpha=beta=8.0
                 img = (img * r + img2 * (1 - r)).astype(np.uint8)
-                ir = (ir * r + ir2 * (1 - r)).astype(np.uint8) #zjq
+                # ir = (ir * r + ir2 * (1 - r)).astype(np.uint8) #zjq
                 labels = np.concatenate((labels, labels2), 0)
 
         else:
@@ -1267,7 +1267,7 @@ def random_perspective(img, ir, targets=(), degrees=10, translate=.1, scale=.1, 
         targets = targets[i]
         targets[:, 1:5] = xy[i]
 
-    return img, _, targets #zjq #_ = ir
+    return img, None, targets #zjq #_ = ir
 
 
 def box_candidates(box1, box2, wh_thr=2, ar_thr=20, area_thr=0.1, eps=1e-16):  # box1(4,n), box2(4,n)

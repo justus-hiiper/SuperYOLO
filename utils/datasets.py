@@ -628,10 +628,10 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
 
     @staticmethod
     def collate_fn(batch):
-        img, ir, label, path, shapes = zip(*batch)  # transposed  #zjq
+        img, _, label, path, shapes = zip(*batch)  # transposed  #zjq #_ = ir
         for i, l in enumerate(label):
             l[:, 0] = i  # add target image index for build_targets()
-        return torch.stack(img, 0), torch.stack(ir, 0), torch.cat(label, 0), path, shapes #zjq
+        return torch.stack(img, 0), None, torch.cat(label, 0), path, shapes #zjq #torch.stack(ir, 0)
 
     @staticmethod
     def collate_fn4(batch):

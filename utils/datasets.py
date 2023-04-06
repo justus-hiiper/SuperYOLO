@@ -1054,7 +1054,7 @@ def load_mosaic(self, index): #拼接图像
                                        perspective=self.hyp['perspective'],
                                        border=self.mosaic_border)  # border to remove
 
-    return img4, labels4, #ir4
+    return img4, None, labels4, #ir4
 
 
 def load_mosaic9(self, index): #not use

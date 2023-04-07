@@ -38,7 +38,9 @@ class Decoder(nn.Module):
         #low_level_feat = F.interpolate(low_level_feat, size=[i*2 for i in low_level_feat.size()[2:]], mode='bilinear', align_corners=True)
         #x = F.interpolate(x, size=low_level_feat.size()[2:], mode='bilinear', align_corners=True)
         x = self.conv2(x)
-        x = self.relu(x) 
+        x = self.relu(x)
+        print(f"x = {x}")
+        print(f"size= {[i*(factor//2) for i in low_level_feat.size()[2:]]}")
         x = F.interpolate(x, size=[i*(factor//2) for i in low_level_feat.size()[2:]], mode='bilinear', align_corners=True)
         if factor>1:
             low_level_feat = F.interpolate(low_level_feat, size=[i*(factor//2) for i in low_level_feat.size()[2:]], mode='bilinear', align_corners=True)

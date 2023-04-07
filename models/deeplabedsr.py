@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
-from models.sr_decoder_noBN_noD import Decoder
 from models.edsr import EDSR
+from models.sr_decoder_noBN_noD import Decoder
+from models.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
 
 # class AttentionModel(nn.module):
 #     def __init__(self,feature_in):
@@ -57,6 +57,7 @@ class DeepLab(nn.Module):
         # self.freeze_bn = freeze_bn
 
     def forward(self, low_level_feat,x):
+        breakpoint()
         x_sr= self.sr_decoder(x, low_level_feat,self.factor)
         x_sr_up = self.edsr(x_sr)
         #attention_map,x_sr = self.attention(x_sr)

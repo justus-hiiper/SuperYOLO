@@ -101,10 +101,6 @@ class Model(nn.Module):
             from models.deeplabedsr import DeepLab
             if input_mode == 'IR' or input_mode == 'RGB':
                 self.model_up = DeepLab(3,self.yaml['c1'],self.yaml['c2'],factor=factor)#.cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
-                print(self.model_up)
-                print(self.yaml["c1"])
-                print(self.yaml["c2"])
-                print(factor)
             else:
                 self.model_up = DeepLab(4,self.yaml['c1'],self.yaml['c2'],factor=factor)#.cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
             self.l1=self.yaml['l1']
@@ -120,7 +116,7 @@ class Model(nn.Module):
         if isinstance(m, Detect):
             s = 256  # 2x min stride
             #m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch_steam, s, s),torch.zeros(1, ch_steam, s, s),input_mode)[0]])  # forward
-            m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch_steam, s, s),None,input_mode)[0]])  # forward #torch.zeros(1, ch_steam, s, s)
+            m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch_steam, s, s),torch.zeros(1, ch_steam, s, s),input_mode)[0]])  # forward #
             m.anchors /= m.stride.view(-1, 1, 1)
             check_anchor_order(m)
             self.stride = m.stride

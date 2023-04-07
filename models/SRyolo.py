@@ -100,9 +100,13 @@ class Model(nn.Module):
             # from models.deeplab import DeepLab
             from models.deeplabedsr import DeepLab
             if input_mode == 'IR' or input_mode == 'RGB':
-                self.model_up = DeepLab(3,self.yaml['c1'],self.yaml['c2'],factor=factor).cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
+                self.model_up = DeepLab(3,self.yaml['c1'],self.yaml['c2'],factor=factor)#.cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
+                print(self.model_up)
+                print(self.yaml["c1"])
+                print(self.yaml["c2"])
+                print(factor)
             else:
-                self.model_up = DeepLab(4,self.yaml['c1'],self.yaml['c2'],factor=factor).cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
+                self.model_up = DeepLab(4,self.yaml['c1'],self.yaml['c2'],factor=factor)#.cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
             self.l1=self.yaml['l1']
             self.l2=self.yaml['l2']
         

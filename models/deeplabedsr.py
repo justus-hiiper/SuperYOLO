@@ -57,7 +57,7 @@ class DeepLab(nn.Module):
         # self.freeze_bn = freeze_bn
 
     def forward(self, low_level_feat,x):
-        breakpoint()
+        # breakpoint()
         x_sr= self.sr_decoder(x, low_level_feat,self.factor)
         x_sr_up = self.edsr(x_sr)
         #attention_map,x_sr = self.attention(x_sr)

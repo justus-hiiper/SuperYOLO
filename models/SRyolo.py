@@ -100,9 +100,9 @@ class Model(nn.Module):
             # from models.deeplab import DeepLab
             from models.deeplabedsr import DeepLab
             if input_mode == 'IR' or input_mode == 'RGB':
-                self.model_up = DeepLab(3,self.yaml['c1'],self.yaml['c2'],factor=factor)#.cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
+                self.model_up = DeepLab(3,self.yaml['c1'],self.yaml['c2'],factor=factor).cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
             else:
-                self.model_up = DeepLab(4,self.yaml['c1'],self.yaml['c2'],factor=factor)#.cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
+                self.model_up = DeepLab(4,self.yaml['c1'],self.yaml['c2'],factor=factor).cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
             self.l1=self.yaml['l1']
             self.l2=self.yaml['l2']
         
@@ -137,7 +137,7 @@ class Model(nn.Module):
         
     
     def forward(self, x, ir=torch.randn(1,3,512,512), input_mode='RGB+IR', augment=False, profile=False):
-        print(f"x={x.shape}\n{input_mode}\n{augment}\n")
+        # print(f"x={x.shape}\n{input_mode}\n{augment}\n")
         # input_mode = 'RGB+IR' #IRRGB
         if input_mode=='RGB':
             ir=x

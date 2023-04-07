@@ -29,7 +29,6 @@ class Decoder(nn.Module):
         self._init_weight()
 
     def forward(self, x, low_level_feat,factor):
-        eval(input("For debug type 'pdb.set_trace()': "))
         #x, low_level_feat = input[-2],input[-1]
         low_level_feat = self.conv1(low_level_feat)
         #low_level_feat = self.bn1(low_level_feat)

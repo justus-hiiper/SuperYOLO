@@ -216,8 +216,7 @@ class ComputeLoss:
 
             # Append
             a = t[:, 6].long()  # anchor indices
-            breakpoint()
-            indices.append((b.to(torch.float64), a.to(torch.float64), gj.clamp_(0, gain[3] - 1).to(torch.float64), gi.clamp_(0, gain[2] - 1).to(torch.float64)))  # image, anchor, grid indices 该网格是哪张图片的，并由哪个锚框进行预测
+            indices.append((b, a, gj.clamp_(0, gain[3].to(torch.int64) - 1), gi.clamp_(0, gain[2].to(torch.int64) - 1)))  # image, anchor, grid indices 该网格是哪张图片的，并由哪个锚框进行预测
             tbox.append(torch.cat((gxy - gij, gwh), 1))  # box 添加真实框的中心点坐标相对于所在网格的偏移量，宽高
             anch.append(anchors[a])  # anchors 添加锚框
             tcls.append(c)  # class

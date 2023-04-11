@@ -837,12 +837,12 @@ class LoadImagesAndLabels_sr(Dataset):  # for training/testing
         else:
             # Load image
             img, (h0, w0), (h, w) = load_image(self, index)
-            ir = load_ir(self, index) #zjq
+            # ir = load_ir(self, index) #zjq
 
             # Letterbox
             shape = self.batch_shapes[self.batch[index]] if self.rect else self.img_size  # final letterboxed shape
             img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
-            ir, _, _ = letterbox(ir, shape, auto=False, scaleup=self.augment) #zjq
+            # ir, _, _ = letterbox(ir, shape, auto=False, scaleup=self.augment) #zjq
             shapes = (h0, w0), ((h / h0, w / w0), pad)  # for COCO mAP rescaling
 
             # Load labels

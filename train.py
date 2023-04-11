@@ -95,7 +95,7 @@ def train(hyp, opt, device, tb_writer=None):
 
     # Model
     pretrained = weights.endswith('.pt')
-    down_factor = int(opt.train_img_size/opt.test_img_size)
+    down_factor = 2 #int(opt.train_img_size/opt.test_img_size) #look!
     if pretrained:
         with torch_distributed_zero_first(rank):
             attempt_download(weights)  # download if not found locally

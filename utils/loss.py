@@ -1,13 +1,14 @@
 # Loss functions
 
+import math
+
 import torch
 import torch.nn as nn
-
-from utils.general import bbox_iou
-from utils.torch_utils import is_parallel
-import math
 import torch.nn.functional as F
-from utils.general import xyxy2xywh, xywh2xyxy,xywhn2xyxy
+from utils.general import bbox_iou, xywh2xyxy, xywhn2xyxy, xyxy2xywh
+from utils.torch_utils import is_parallel
+
+
 def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441
     # return positive, negative label smoothing BCE targets
     return 1.0 - 0.5 * eps, 0.5 * eps
@@ -215,7 +216,8 @@ class ComputeLoss:
 
             # Append
             a = t[:, 6].long()  # anchor indices
-            indices.append((b, a, gj.clamp_(0, gain[3] - 1), gi.clamp_(0, gain[2] - 1)))  # image, anchor, grid indices 该网格是哪张图片的，并由哪个锚框进行预测
+            breakpoint()
+            indices.append((b.to(torch.float64), a.to(torch.float64), gj.clamp_(0, gain[3] - 1).to(torch.float64), gi.clamp_(0, gain[2] - 1).to(torch.float64)))  # image, anchor, grid indices 该网格是哪张图片的，并由哪个锚框进行预测
             tbox.append(torch.cat((gxy - gij, gwh), 1))  # box 添加真实框的中心点坐标相对于所在网格的偏移量，宽高
             anch.append(anchors[a])  # anchors 添加锚框
             tcls.append(c)  # class

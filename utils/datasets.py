@@ -682,11 +682,12 @@ class LoadImagesAndLabels_sr(Dataset):  # for training/testing
             #     if i+'\n' in self.img_files:
             #         self.img_files.remove(i+'\n')
             for j in range(len(self.img_files)):
-                self.img_files[j] = self.img_files[j].rstrip() + '_co.png'  #self.img_path + self.img_files[j].rstrip() + '_co.png'
+                self.img_files[j] = self.img_files[j].rstrip() + '.png'  #self.img_path + self.img_files[j].rstrip() + '_co.png'
 
         # Check cache
         self.label_files = img2label_paths(self.img_files)  # labels
         self.ir_files = img2ir_paths(self.img_files)
+        # breakpoint()
         cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')  # cached labels
         if cache_path.is_file():
             cache = torch.load(cache_path)  # load
@@ -890,7 +891,7 @@ class LoadImagesAndLabels_sr(Dataset):  # for training/testing
             # flip left-right
             if random.random() < hyp['fliplr']:
                 img = np.fliplr(img)
-                ir = np.fliplr(ir) #zjq
+                # ir = np.fliplr(ir) #zjq
                 if nL:
                     labels[:, 1] = 1 - labels[:, 1]
 
@@ -901,10 +902,10 @@ class LoadImagesAndLabels_sr(Dataset):  # for training/testing
         # Convert
         img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         img = np.ascontiguousarray(img)
-        ir = ir[:, :, ::-1].transpose(2, 0, 1)
-        ir = np.ascontiguousarray(ir) #zjq ascontiguousarray函数将一个内存不连续存储的数组转换为内存连续存储的数组，使得运行速度更快
+        # ir = ir[:, :, ::-1].transpose(2, 0, 1)
+        # ir = np.ascontiguousarray(ir) #zjq ascontiguousarray函数将一个内存不连续存储的数组转换为内存连续存储的数组，使得运行速度更快
 
-        return torch.from_numpy(img), torch.from_numpy(ir), labels_out, self.img_files[index], shapes
+        return torch.from_numpy(img), None, labels_out, self.img_files[index], shapes #None = torch.from_numpy(ir)
 
     @staticmethod
     def collate_fn(batch):

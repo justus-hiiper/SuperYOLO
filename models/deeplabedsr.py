@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from models.edsr import EDSR
 from models.sr_decoder_noBN_noD import Decoder
 from models.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
@@ -43,7 +44,7 @@ class DeepLab(nn.Module):
 
         #self.attention = AttentionModel(128)
         self.sr_decoder = Decoder(c1,c2)
-        self.edsr = EDSR(num_channels=ch,input_channel=64, factor=8)
+        self.edsr = EDSR(num_channels=ch,input_channel=64, factor=8) #G <- hardcoded factor?
         # self.up_sr_1 = nn.ConvTranspose2d(64, 64, 2, stride=2) 
         # self.up_edsr_1 = EDSRConv(64,64)
         # self.up_sr_2 = nn.ConvTranspose2d(64, 32, 2, stride=2) 
@@ -59,6 +60,7 @@ class DeepLab(nn.Module):
     def forward(self, low_level_feat,x):
         # breakpoint()
         x_sr= self.sr_decoder(x, low_level_feat,self.factor)
+        # breakpoint()
         x_sr_up = self.edsr(x_sr)
         #attention_map,x_sr = self.attention(x_sr)
         # x_sr_up = self.up_sr_1(x_sr)

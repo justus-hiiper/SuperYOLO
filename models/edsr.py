@@ -1,7 +1,9 @@
 # from ..NN import common
 
-import torch.nn as nn
 import math
+
+import torch.nn as nn
+
 
 def make_model(args, parent=False):
     return EDSR(args)

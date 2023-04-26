@@ -48,6 +48,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 ########swin#######
 #from config import get_config
 
+# breakpoint()
 logger = logging.getLogger(__name__)
 
 
@@ -95,7 +96,8 @@ def train(hyp, opt, device, tb_writer=None):
 
     # Model
     pretrained = weights.endswith('.pt')
-    down_factor = 2 #int(opt.train_img_size/opt.test_img_size) #look!
+    down_factor = int(opt.train_img_size/opt.test_img_size) #look! #2
+
     if pretrained:
         with torch_distributed_zero_first(rank):
             attempt_download(weights)  # download if not found locally
@@ -107,6 +109,7 @@ def train(hyp, opt, device, tb_writer=None):
         model.load_state_dict(state_dict, strict=False)  # load
         logger.info('Transferred %g/%g items from %s' % (len(state_dict), len(model.state_dict()), weights))  # report
     else:
+        breakpoint()
         model = Model(opt.cfg, input_mode = opt.input_mode ,ch_steam=opt.ch_steam,ch=opt.ch, nc=nc, anchors=hyp.get('anchors'),config=None,sr=opt.super,factor=down_factor).to(device)  # create
     with torch_distributed_zero_first(rank):
         check_dataset(data_dict)  # check
@@ -344,6 +347,7 @@ def train(hyp, opt, device, tb_writer=None):
         if rank != -1:
             dataloader.sampler.set_epoch(epoch)
         pbar = enumerate(dataloader)
+        # breakpoint()
         logger.info(('\n' + '%10s' * 8) % ('Epoch', 'gpu_mem', 'box', 'obj', 'cls', 'total', 'labels', 'img_size'))
         if rank in [-1, 0]:
             pbar = tqdm(pbar, total=nb)  # progress bar
@@ -356,12 +360,17 @@ def train(hyp, opt, device, tb_writer=None):
             # if imgsz==imgsz_test*2:
             #     imgs=F.interpolate(image,size=[i//2 for i in image.size()[2:]], mode='bilinear', align_corners=True)
             #     irs=F.interpolate(ir_image,size=[i//2 for i in ir_image.size()[2:]], mode='bilinear', align_corners=True)
-            #down_factor = int(imgsz/imgsz_test)
+            # down_factor = int(imgsz/imgsz_test)
             if down_factor>1:
+                # print(f"Image: {image.shape}\n")
                 imgs=F.interpolate(image,size=[i//down_factor for i in image.size()[2:]], mode='bilinear', align_corners=True)
+                # print(f"Imgs: {imgs.shape}\n")
                 # irs=F.interpolate(ir_image,size=[i//down_factor for i in ir_image.size()[2:]], mode='bilinear', align_corners=True)
             else:
-                imgs = image
+                print(f"Image: {image.shape}\n")
+                print(f"Imgs1: {imgs.shape}\n")
+                imgs = F.interpolate(image,size=[i//down_factor for i in image.size()[2:]], mode='bilinear', align_corners=True) # = image
+                print(f"Imgs2: {imgs.shape}\n")
                 # irs = ir_image
             # imgs = get_edge(imgs).to(device, non_blocking=True)
             # irs = get_edge(irs).to(device, non_blocking=True)
@@ -391,6 +400,7 @@ def train(hyp, opt, device, tb_writer=None):
             with amp.autocast(enabled=cuda):
                 # t0 = time.time()
                 if opt.super:# and not opt.attention and not opt.super_attention:
+                    # breakpoint()
                     pred,output_sr,_ = model(imgs,irs,opt.input_mode)  # forward #zjq
                 # elif (opt.super and opt.attention) or opt.super_attention:
                 #     pred,output_sr, attention_mask,_ = model(imgs,irs,opt.input_mode)

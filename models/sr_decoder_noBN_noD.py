@@ -39,7 +39,8 @@ class Decoder(nn.Module):
         #x = F.interpolate(x, size=low_level_feat.size()[2:], mode='bilinear', align_corners=True)
         x = self.conv2(x)
         x = self.relu(x)
-        x = F.interpolate(x, size=[i*(factor//2) for i in low_level_feat.size()[2:]], mode='bilinear', align_corners=True)
+        # print("\n\n\n\n", [i*(factor//2) for i in low_level_feat.size()[2:]], "\n\n\n\n",)
+        x = F.interpolate(x, size=[i*(max(factor//2, 1)) for i in low_level_feat.size()[2:]], mode='bilinear', align_corners=True)
         if factor>1:
             low_level_feat = F.interpolate(low_level_feat, size=[i*(factor//2) for i in low_level_feat.size()[2:]], mode='bilinear', align_corners=True)
         #x = self.pixel_shuffle(x)

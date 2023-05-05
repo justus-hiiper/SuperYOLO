@@ -100,7 +100,7 @@ class Model(nn.Module):
             # from models.deeplab import DeepLab
             from models.deeplabedsr import DeepLab
             if input_mode == 'IR' or input_mode == 'RGB':
-                breakpoint()
+                # breakpoint()
                 self.model_up = DeepLab(3,self.yaml['c1'],self.yaml['c2'],factor=factor)#.cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
             else:
                 self.model_up = DeepLab(4,self.yaml['c1'],self.yaml['c2'],factor=factor)#.cuda() #'if the size is m:192,768 l:256,1024 x:320 1280
@@ -117,7 +117,7 @@ class Model(nn.Module):
         if isinstance(m, Detect):
             s = 256  # 2x min stride
             # m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch_steam, s, s),torch.zeros(1, ch_steam, s, s),input_mode)[0]])  # forward
-            breakpoint()
+            # breakpoint()
             m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch_steam, s, s),None,input_mode)[0]])  # forward #torch.zeros(1, ch_steam, s, s)
             m.anchors /= m.stride.view(-1, 1, 1)
             check_anchor_order(m)
@@ -192,7 +192,7 @@ class Model(nn.Module):
             self.training |= self.export
             if self.training==True:
                 if self.sr:
-                    breakpoint()
+                    # breakpoint()
                     y,output_sr,features = self.forward_once(steam,'yolo', profile) #zjq #G<- runs this
                     return y,output_sr,features
                 else:
@@ -246,7 +246,7 @@ class Model(nn.Module):
             self.training |= self.export
             if self.training==True:
                 if self.sr:
-                    breakpoint()
+                    # breakpoint()
                     output_sr = self.model_up(y[self.l1],y[self.l2]) #在超分上加attention    
                     return x,output_sr,y#(y[self.f1],y[self.f2],y[self.f3])#(y[4],y[8],y[18],y[21],y[24])#(y[7],y[15],y[-2])
                 else:

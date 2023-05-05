@@ -109,7 +109,6 @@ def train(hyp, opt, device, tb_writer=None):
         model.load_state_dict(state_dict, strict=False)  # load
         logger.info('Transferred %g/%g items from %s' % (len(state_dict), len(model.state_dict()), weights))  # report
     else:
-        breakpoint()
         model = Model(opt.cfg, input_mode = opt.input_mode ,ch_steam=opt.ch_steam,ch=opt.ch, nc=nc, anchors=hyp.get('anchors'),config=None,sr=opt.super,factor=down_factor).to(device)  # create
     with torch_distributed_zero_first(rank):
         check_dataset(data_dict)  # check

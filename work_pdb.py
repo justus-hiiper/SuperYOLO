@@ -1,9 +1,6 @@
-# import pdb
-
-# if input("test input work in db: ") == "yes":
-#     print("Niceee")
-
 import os
+
+import regex as re
 
 
 def remove_ir():
@@ -36,7 +33,18 @@ def add_path_fold():
     
     print("Done")
 
-add_path_fold()
+def fold_to_100_VEDAI():
+    """
+    This function removes all of the pathnames from fold01_w.txt that have an image number higher than 100
+    """
+    with open("C:\\Users\\gsvpk\\VScode\\Own_Projects\\SuperYOLO\\data\\VEDAI1\\VEDAI\\fold01_w.txt", "r") as f:
+        file = f.readlines()
+        with open("C:\\Users\\gsvpk\\VScode\\Own_Projects\\SuperYOLO\\data\\VEDAI1\\VEDAI\\fold01_w2.txt", "w") as f2:
+            for i in file:
+                i_copy = i[:-1] #remove \n
+                i_copy = i_copy.split("\\")
+                if int(i_copy[-1]) <= 100:
+                    f2.write(i)
 
 # print(os.listdir("C:\\Users\\gsvpk\\VScode\\Own_Projects\\SuperYOLO\\data\\VEDAI\\images"))
 

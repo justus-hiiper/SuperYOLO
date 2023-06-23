@@ -354,10 +354,10 @@ def train(hyp, opt, device, tb_writer=None):
         inf_times = []
         for i, (imgs, irs, targets, paths, _) in pbar:  # batch zjq  -------------------------------------------------------------
             # G: calculate inference time
-            tot_inf = sum(inf_times)
-            if count == 32:
+            tot_inf = sum(inf_times[1:]) / 20
+            if count == 21:
                 print(f"The inference times per image (s): {inf_times}")
-                print(f"\n\n\n\nBatch 32 inference time (s): {tot_inf}\n\n\n\n ")
+                print(f"\n\n\n\n Batch 32 inference time (s): {tot_inf}\n\n\n\n ")
                 break
             ni = i + nb * epoch  # number integrated batches (since train start)
             image = imgs.to(device, non_blocking=True).float() / 255.0  # uint8 to float32, 0-255 to 0.0-1.0

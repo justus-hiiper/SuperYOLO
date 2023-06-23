@@ -356,6 +356,7 @@ def train(hyp, opt, device, tb_writer=None):
             # G: calculate inference time
             tot_inf = sum(inf_times)
             if count == 32:
+                print(f"The inference times per image (s): {inf_times}")
                 print(f"\n\n\n\nBatch 32 inference time (s): {tot_inf}\n\n\n\n ")
                 break
             ni = i + nb * epoch  # number integrated batches (since train start)
@@ -403,16 +404,16 @@ def train(hyp, opt, device, tb_writer=None):
 
             # Forward
             with amp.autocast(enabled=cuda):
-                t0 = time.time()
                 if opt.super:# and not opt.attention and not opt.super_attention:
+                    t0 = time.time()
                     pred,output_sr,_ = model(imgs,irs,opt.input_mode)  # forward #zjq
+                    t1 = time.time()
                 # elif (opt.super and opt.attention) or opt.super_attention:
                 #     pred,output_sr, attention_mask,_ = model(imgs,irs,opt.input_mode)
                 # elif not opt.super and not opt.super_attention and opt.attention:
                 #     pred, attention_mask,_ = model(imgs,irs,opt.input_mode)
                 else:
                     pred,_ = model(imgs,irs,opt.input_mode)
-                t1 = time.time()
                 # print(f"Inference time (s): {t1-t0}")
                 inf_times.append(t1-t0)
                 count += 1

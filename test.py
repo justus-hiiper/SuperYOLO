@@ -7,10 +7,11 @@ from threading import Thread
 import numpy as np
 import torch
 import yaml
-from models.experimental import attempt_load
 from PIL import Image
 from torchvision import transforms
 from tqdm import tqdm
+
+from models.experimental import attempt_load
 from utils.datasets import create_dataloader, create_dataloader_sr
 from utils.general import (box_iou, check_dataset, check_file, check_img_size,
                            check_requirements, coco80_to_coco91_class,
@@ -91,8 +92,6 @@ def test(data,
 
     # Configure
     model.eval()
-
-    print(model)
     if isinstance(data, str):
         is_coco = data.endswith('coco.yaml')
         with open(data) as f:

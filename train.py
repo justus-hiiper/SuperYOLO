@@ -346,12 +346,18 @@ def train(hyp, opt, device, tb_writer=None):
         if rank != -1:
             dataloader.sampler.set_epoch(epoch)
         pbar = enumerate(dataloader)
-        # breakpoint()
         logger.info(('\n' + '%10s' * 8) % ('Epoch', 'gpu_mem', 'box', 'obj', 'cls', 'total', 'labels', 'img_size'))
         if rank in [-1, 0]:
             pbar = tqdm(pbar, total=nb)  # progress bar
         optimizer.zero_grad()
+        count = 0
+        inf_times = []
         for i, (imgs, irs, targets, paths, _) in pbar:  # batch zjq  -------------------------------------------------------------
+            # G: calculate inference time
+            tot_inf = sum(inf_times)
+            if count == 32:
+                print(f"\n\n\n\nBatch 32 inference time (s): {tot_inf}\n\n\n\n ")
+                break
             ni = i + nb * epoch  # number integrated batches (since train start)
             image = imgs.to(device, non_blocking=True).float() / 255.0  # uint8 to float32, 0-255 to 0.0-1.0
             # ir_image = irs.to(device, non_blocking=True).float() / 255.0 #zjq
@@ -397,9 +403,8 @@ def train(hyp, opt, device, tb_writer=None):
 
             # Forward
             with amp.autocast(enabled=cuda):
-                # t0 = time.time()
+                t0 = time.time()
                 if opt.super:# and not opt.attention and not opt.super_attention:
-                    # breakpoint()
                     pred,output_sr,_ = model(imgs,irs,opt.input_mode)  # forward #zjq
                 # elif (opt.super and opt.attention) or opt.super_attention:
                 #     pred,output_sr, attention_mask,_ = model(imgs,irs,opt.input_mode)
@@ -407,8 +412,11 @@ def train(hyp, opt, device, tb_writer=None):
                 #     pred, attention_mask,_ = model(imgs,irs,opt.input_mode)
                 else:
                     pred,_ = model(imgs,irs,opt.input_mode)
-                # t1 = time.time()
-                # print(t1-t0)
+                t1 = time.time()
+                # print(f"Inference time (s): {t1-t0}")
+                inf_times.append(t1-t0)
+                count += 1
+                continue
                     
                 loss, lbox , lobj , lcls  = compute_loss(pred, targets.to(device))  # loss scaled by batch_size
                 loss_items = torch.cat((lbox, lobj, lcls, loss)).detach()
@@ -495,11 +503,11 @@ def train(hyp, opt, device, tb_writer=None):
                                                  compute_loss=compute_loss,
                                                  is_coco=is_coco)
 
-            # Write
-            with open(results_file, 'a') as f:
-                f.write(s + '%10.4g' * 7 % results + '\n')  # append metrics, val_loss
-            if len(opt.name) and opt.bucket:
-                os.system('gsutil cp %s gs://%s/results/results%s.txt' % (results_file, opt.bucket, opt.name))
+            # # Write
+            # with open(results_file, 'a') as f:
+            #     f.write(s + '%10.4g' * 7 % results + '\n')  # append metrics, val_loss
+            # if len(opt.name) and opt.bucket:
+            #     os.system('gsutil cp %s gs://%s/results/results%s.txt' % (results_file, opt.bucket, opt.name))
 
             # Log
             tags = ['train/box_loss', 'train/obj_loss', 'train/cls_loss',  # train loss
@@ -518,6 +526,7 @@ def train(hyp, opt, device, tb_writer=None):
                 best_fitness = fi
             wandb_logger.end_epoch(best_result=best_fitness == fi)
 
+            continue
             # Save model
             if (not opt.nosave) or (final_epoch and not opt.evolve):  # if save
                 ckpt = {'epoch': epoch,
@@ -548,45 +557,46 @@ def train(hyp, opt, device, tb_writer=None):
 
         # end epoch ----------------------------------------------------------------------------------------------------
     # end training
-    if rank in [-1, 0]:
-        # Plots
-        if plots:
-            plot_results(save_dir=save_dir)  # save as results.png
-            if wandb_logger.wandb:
-                files = ['results.png', 'confusion_matrix.png', *[f'{x}_curve.png' for x in ('F1', 'PR', 'P', 'R')]]
-                wandb_logger.log({"Results": [wandb_logger.wandb.Image(str(save_dir / f), caption=f) for f in files
-                                              if (save_dir / f).exists()]})
-        # Test best.pt
-        logger.info('%g epochs completed in %.3f hours.\n' % (epoch - start_epoch + 1, (time.time() - t0) / 3600))
-        if opt.data.endswith('coco.yaml') and nc == 80:  # if COCO
-            for m in (last, best) if best.exists() else (last):  # speed, mAP tests
-                results, _, _ = test.test(opt.data,
-                                          batch_size=batch_size * 2,
-                                          imgsz=imgsz_test,
-                                          conf_thres=0.001,
-                                          iou_thres=0.7,
-                                          model=attempt_load(m, device).half(),
-                                          single_cls=opt.single_cls,
-                                          dataloader=testloader,
-                                          save_dir=save_dir,
-                                          save_json=True,
-                                          plots=False,
-                                          is_coco=is_coco)
+    
+    # if rank in [-1, 0]:
+    #     # Plots
+    #     if plots:
+    #         plot_results(save_dir=save_dir)  # save as results.png
+    #         if wandb_logger.wandb:
+    #             files = ['results.png', 'confusion_matrix.png', *[f'{x}_curve.png' for x in ('F1', 'PR', 'P', 'R')]]
+    #             wandb_logger.log({"Results": [wandb_logger.wandb.Image(str(save_dir / f), caption=f) for f in files
+    #                                           if (save_dir / f).exists()]})
+    #     # Test best.pt
+    #     logger.info('%g epochs completed in %.3f hours.\n' % (epoch - start_epoch + 1, (time.time() - t0) / 3600))
+    #     if opt.data.endswith('coco.yaml') and nc == 80:  # if COCO
+    #         for m in (last, best) if best.exists() else (last):  # speed, mAP tests
+    #             results, _, _ = test.test(opt.data,
+    #                                       batch_size=batch_size * 2,
+    #                                       imgsz=imgsz_test,
+    #                                       conf_thres=0.001,
+    #                                       iou_thres=0.7,
+    #                                       model=attempt_load(m, device).half(),
+    #                                       single_cls=opt.single_cls,
+    #                                       dataloader=testloader,
+    #                                       save_dir=save_dir,
+    #                                       save_json=True,
+    #                                       plots=False,
+    #                                       is_coco=is_coco)
 
-        # Strip optimizers
-        final = best if best.exists() else last  # final model
-        for f in last, best:
-            if f.exists():
-                strip_optimizer(f)  # strip optimizers
-        if opt.bucket:
-            os.system(f'gsutil cp {final} gs://{opt.bucket}/weights')  # upload
-        if wandb_logger.wandb and not opt.evolve:  # Log the stripped model
-            wandb_logger.wandb.log_artifact(str(final), type='model',
-                                            name='run_' + wandb_logger.wandb_run.id + '_model',
-                                            aliases=['last', 'best', 'stripped'])
-        wandb_logger.finish_run()
-    else:
-        dist.destroy_process_group()
+    #     # Strip optimizers
+    #     final = best if best.exists() else last  # final model
+    #     for f in last, best:
+    #         if f.exists():
+    #             strip_optimizer(f)  # strip optimizers
+    #     if opt.bucket:
+    #         os.system(f'gsutil cp {final} gs://{opt.bucket}/weights')  # upload
+    #     if wandb_logger.wandb and not opt.evolve:  # Log the stripped model
+    #         wandb_logger.wandb.log_artifact(str(final), type='model',
+    #                                         name='run_' + wandb_logger.wandb_run.id + '_model',
+    #                                         aliases=['last', 'best', 'stripped'])
+    #     wandb_logger.finish_run()
+    # else:
+    #     dist.destroy_process_group()
     torch.cuda.empty_cache()
     return results
 

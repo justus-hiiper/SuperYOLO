@@ -283,7 +283,7 @@ def train(hyp, opt, device, tb_writer=None):
     maps = np.zeros(nc)  # mAP per class
     results = (0, 0, 0, 0, 0, 0, 0)  # P, R, mAP@.5, mAP@.5-.95, val_loss(box, obj, cls)
     scheduler.last_epoch = start_epoch - 1  # do not move
-    scaler = amp.GradScaler(enabled=cuda)
+    # scaler = amp.GradScaler(enabled=cuda) commented by guy
     compute_loss = ComputeLoss(model)  # init loss class
     # attention_loss = LevelAttention_loss()
     # superloss = Superresolution_loss()
@@ -324,7 +324,7 @@ def train(hyp, opt, device, tb_writer=None):
         # model.module.conv5.t = t
         model.train()
 
-        # Update image weights (optional)
+        # Update image weights (optional) # commented out by guy
         if opt.image_weights:
             # Generate indices
             if rank in [-1, 0]:

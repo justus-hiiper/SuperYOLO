@@ -233,34 +233,34 @@ def train(hyp, opt, device, tb_writer=None):
     nb = len(dataloader)  # number of batches
     assert mlc < nc, 'Label class %g exceeds nc=%g in %s. Possible class labels are 0-%g' % (mlc, nc, opt.data, nc - 1)
 
-    # Process 0
-    if rank in [-1, 0]:
-        # if not opt.data.endswith('SRvedai.yaml'):
-        testloader = create_dataloader(test_path, imgsz_test, batch_size, gs, opt,  # testloader
-                                    hyp=hyp, cache=opt.cache_images and not opt.notest, rect=False, rank=-1,
-                                    #world_size=opt.world_size, 
-                                    workers=opt.workers,pad=0.5,
-                                    prefix=colorstr('val: '))[0]
-        # else:
-        #     testloader = create_dataloader_sr(test_path, imgsz_test, batch_size, gs, opt,  # testloader
-        #                                hyp=hyp, cache=opt.cache_images and not opt.notest, rect=False, rank=-1,
-        #                                world_size=opt.world_size, workers=opt.workers,pad=0.5,
-        #                                prefix=colorstr('val: '))[0]
+    # # Process 0
+    # if rank in [-1, 0]:
+    #     # if not opt.data.endswith('SRvedai.yaml'):
+    #     testloader = create_dataloader(test_path, imgsz_test, batch_size, gs, opt,  # testloader
+    #                                 hyp=hyp, cache=opt.cache_images and not opt.notest, rect=False, rank=-1,
+    #                                 #world_size=opt.world_size, 
+    #                                 workers=opt.workers,pad=0.5,
+    #                                 prefix=colorstr('val: '))[0]
+    #     # else:
+    #     #     testloader = create_dataloader_sr(test_path, imgsz_test, batch_size, gs, opt,  # testloader
+    #     #                                hyp=hyp, cache=opt.cache_images and not opt.notest, rect=False, rank=-1,
+    #     #                                world_size=opt.world_size, workers=opt.workers,pad=0.5,
+    #     #                                prefix=colorstr('val: '))[0]
 
-        if not opt.resume:
-            labels = np.concatenate(dataset.labels, 0)
-            c = torch.tensor(labels[:, 0])  # classes
-            # cf = torch.bincount(c.long(), minlength=nc) + 1.  # frequency
-            # model._initialize_biases(cf.to(device))
-            if plots:
-                plot_labels(labels, names, save_dir, loggers)
-                if tb_writer:
-                    tb_writer.add_histogram('classes', c, 0)
+        # if not opt.resume:
+        #     labels = np.concatenate(dataset.labels, 0)
+        #     c = torch.tensor(labels[:, 0])  # classes
+        #     # cf = torch.bincount(c.long(), minlength=nc) + 1.  # frequency
+        #     # model._initialize_biases(cf.to(device))
+        #     if plots:
+        #         plot_labels(labels, names, save_dir, loggers)
+        #         if tb_writer:
+        #             tb_writer.add_histogram('classes', c, 0)
 
-            # Anchors
-            if not opt.noautoanchor:
-                check_anchors(dataset, model=model, thr=hyp['anchor_t'], imgsz=imgsz)
-            model.half().float()  # pre-reduce anchor precision
+        #     # Anchors
+        #     if not opt.noautoanchor:
+        #         check_anchors(dataset, model=model, thr=hyp['anchor_t'], imgsz=imgsz)
+        #     model.half().float()  # pre-reduce anchor precision
 
     # DDP mode
     if cuda and rank != -1:
@@ -284,7 +284,7 @@ def train(hyp, opt, device, tb_writer=None):
     results = (0, 0, 0, 0, 0, 0, 0)  # P, R, mAP@.5, mAP@.5-.95, val_loss(box, obj, cls)
     scheduler.last_epoch = start_epoch - 1  # do not move
     # scaler = amp.GradScaler(enabled=cuda) commented by guy
-    compute_loss = ComputeLoss(model)  # init loss class
+    # compute_loss = ComputeLoss(model)  # init loss class
     # attention_loss = LevelAttention_loss()
     # superloss = Superresolution_loss()
     logger.info(f'Image sizes {imgsz} train, {imgsz_test} test\n'
@@ -322,7 +322,7 @@ def train(hyp, opt, device, tb_writer=None):
         # model.module.conv3.t = t
         # model.module.conv4.t = t
         # model.module.conv5.t = t
-        model.train()
+        # model.train() commented out by guy
 
         # Update image weights (optional) # commented out by guy
         if opt.image_weights:
@@ -349,7 +349,7 @@ def train(hyp, opt, device, tb_writer=None):
         logger.info(('\n' + '%10s' * 8) % ('Epoch', 'gpu_mem', 'box', 'obj', 'cls', 'total', 'labels', 'img_size'))
         if rank in [-1, 0]:
             pbar = tqdm(pbar, total=nb)  # progress bar
-        optimizer.zero_grad()
+        # optimizer.zero_grad()
         count = 0
         inf_times = []
         for i, (imgs, irs, targets, paths, _) in pbar:  # batch zjq  -------------------------------------------------------------
@@ -405,9 +405,10 @@ def train(hyp, opt, device, tb_writer=None):
             # Forward
             with amp.autocast(enabled=cuda):
                 if opt.super:# and not opt.attention and not opt.super_attention:
-                    t0 = time.time()
-                    pred,output_sr,_ = model(imgs,irs,opt.input_mode)  # forward #zjq
-                    t1 = time.time()
+                    with torch.no_grad():
+                        t0 = time.time()
+                        pred,output_sr,_ = model(imgs,irs,opt.input_mode)  # forward #zjq
+                        t1 = time.time()
                 # elif (opt.super and opt.attention) or opt.super_attention:
                 #     pred,output_sr, attention_mask,_ = model(imgs,irs,opt.input_mode)
                 # elif not opt.super and not opt.super_attention and opt.attention:
@@ -483,78 +484,77 @@ def train(hyp, opt, device, tb_writer=None):
         lr = [x['lr'] for x in optimizer.param_groups]  # for tensorboard
         scheduler.step()
 
-        # DDP process 0 or single-GPU
-        if rank in [-1, 0]:
-            # mAP
-            ema.update_attr(model, include=['yaml', 'nc', 'hyp', 'gr', 'names', 'stride', 'class_weights'])
-            final_epoch = epoch + 1 == epochs
-            if not opt.notest or final_epoch:  # Calculate mAP
-                wandb_logger.current_epoch = epoch + 1
-                results, maps, times = test.test(data_dict,
-                                                 batch_size=batch_size * 2,
-                                                 imgsz=imgsz_test,
-                                                 input_mode = opt.input_mode,
-                                                 model=ema.ema,
-                                                 single_cls=opt.single_cls,
-                                                 dataloader=testloader,
-                                                 save_dir=save_dir,
-                                                 verbose=nc < 50 and final_epoch,
-                                                 plots=plots and final_epoch,
-                                                 wandb_logger=wandb_logger,
-                                                 compute_loss=compute_loss,
-                                                 is_coco=is_coco)
+        # # DDP process 0 or single-GPU
+        # if rank in [-1, 0]:
+        #     # mAP
+        #     ema.update_attr(model, include=['yaml', 'nc', 'hyp', 'gr', 'names', 'stride', 'class_weights'])
+        #     final_epoch = epoch + 1 == epochs
+        #     if not opt.notest or final_epoch:  # Calculate mAP
+        #         wandb_logger.current_epoch = epoch + 1
+        #         results, maps, times = test.test(data_dict,
+        #                                          batch_size=batch_size * 2,
+        #                                          imgsz=imgsz_test,
+        #                                          input_mode = opt.input_mode,
+        #                                          model=ema.ema,
+        #                                          single_cls=opt.single_cls,
+        #                                          dataloader=testloader,
+        #                                          save_dir=save_dir,
+        #                                          verbose=nc < 50 and final_epoch,
+        #                                          plots=plots and final_epoch,
+        #                                          wandb_logger=wandb_logger,
+        #                                          compute_loss=compute_loss,
+        #                                          is_coco=is_coco)
 
-            # # Write
-            # with open(results_file, 'a') as f:
-            #     f.write(s + '%10.4g' * 7 % results + '\n')  # append metrics, val_loss
-            # if len(opt.name) and opt.bucket:
-            #     os.system('gsutil cp %s gs://%s/results/results%s.txt' % (results_file, opt.bucket, opt.name))
+        #     # # Write
+        #     # with open(results_file, 'a') as f:
+        #     #     f.write(s + '%10.4g' * 7 % results + '\n')  # append metrics, val_loss
+        #     # if len(opt.name) and opt.bucket:
+        #     #     os.system('gsutil cp %s gs://%s/results/results%s.txt' % (results_file, opt.bucket, opt.name))
 
-            # Log
-            tags = ['train/box_loss', 'train/obj_loss', 'train/cls_loss',  # train loss
-                    'metrics/precision', 'metrics/recall', 'metrics/mAP_0.5', 'metrics/mAP_0.5:0.95',
-                    'val/box_loss', 'val/obj_loss', 'val/cls_loss',  # val loss
-                    'x/lr0', 'x/lr1', 'x/lr2']  # params
-            for x, tag in zip(list(mloss[:-1]) + list(results) + lr, tags):
-                if tb_writer:
-                    tb_writer.add_scalar(tag, x, epoch)  # tensorboard
-                if wandb_logger.wandb:
-                    wandb_logger.log({tag: x})  # W&B
+        #     # Log
+        #     tags = ['train/box_loss', 'train/obj_loss', 'train/cls_loss',  # train loss
+        #             'metrics/precision', 'metrics/recall', 'metrics/mAP_0.5', 'metrics/mAP_0.5:0.95',
+        #             'val/box_loss', 'val/obj_loss', 'val/cls_loss',  # val loss
+        #             'x/lr0', 'x/lr1', 'x/lr2']  # params
+        #     for x, tag in zip(list(mloss[:-1]) + list(results) + lr, tags):
+        #         if tb_writer:
+        #             tb_writer.add_scalar(tag, x, epoch)  # tensorboard
+        #         if wandb_logger.wandb:
+        #             wandb_logger.log({tag: x})  # W&B
 
-            # Update best mAP
-            fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of [P, R, mAP@.5, mAP@.5-.95]
-            if fi > best_fitness:
-                best_fitness = fi
-            wandb_logger.end_epoch(best_result=best_fitness == fi)
+        #     # Update best mAP
+        #     fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of [P, R, mAP@.5, mAP@.5-.95]
+        #     if fi > best_fitness:
+        #         best_fitness = fi
+        #     wandb_logger.end_epoch(best_result=best_fitness == fi)
 
-            continue
-            # Save model
-            if (not opt.nosave) or (final_epoch and not opt.evolve):  # if save
-                ckpt = {'epoch': epoch,
-                        'best_fitness': best_fitness,
-                        'training_results': results_file.read_text(),
-                        'model': deepcopy(model.module if is_parallel(model) else model).half(),
-                        'ema': deepcopy(ema.ema).half(),
-                        'updates': ema.updates,
-                        'optimizer': optimizer.state_dict(),
-                        'wandb_id': wandb_logger.wandb_run.id if wandb_logger.wandb else None,}
-                        #'ch':opt.ch,
-                        #'input_mode':opt.input_mode,
-                        #'cfg':opt.cfg,
-                        #'ch_steam':opt.ch_steam,
-                        #'anchors':hyp.get('anchors')}
+            # # Save model
+            # if (not opt.nosave) or (final_epoch and not opt.evolve):  # if save
+            #     ckpt = {'epoch': epoch,
+            #             'best_fitness': best_fitness,
+            #             'training_results': results_file.read_text(),
+            #             'model': deepcopy(model.module if is_parallel(model) else model).half(),
+            #             'ema': deepcopy(ema.ema).half(),
+            #             'updates': ema.updates,
+            #             'optimizer': optimizer.state_dict(),
+            #             'wandb_id': wandb_logger.wandb_run.id if wandb_logger.wandb else None,}
+            #             #'ch':opt.ch,
+            #             #'input_mode':opt.input_mode,
+            #             #'cfg':opt.cfg,
+            #             #'ch_steam':opt.ch_steam,
+            #             #'anchors':hyp.get('anchors')}
 
 
-                # Save last, best and delete
-                torch.save(ckpt, last)
-                if best_fitness == fi:
-                    torch.save(ckpt, best)
-                    print('Saving a best checkpoint ...')
-                if wandb_logger.wandb:
-                    if ((epoch + 1) % opt.save_period == 0 and not final_epoch) and opt.save_period != -1:
-                        wandb_logger.log_model(
-                            last.parent, opt, epoch, fi, best_model=best_fitness == fi)
-                del ckpt
+            #     # Save last, best and delete
+            #     torch.save(ckpt, last)
+            #     if best_fitness == fi:
+            #         torch.save(ckpt, best)
+            #         print('Saving a best checkpoint ...')
+            #     if wandb_logger.wandb:
+            #         if ((epoch + 1) % opt.save_period == 0 and not final_epoch) and opt.save_period != -1:
+            #             wandb_logger.log_model(
+            #                 last.parent, opt, epoch, fi, best_model=best_fitness == fi)
+            #     del ckpt
 
         # end epoch ----------------------------------------------------------------------------------------------------
     # end training
